@@ -1,7 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe Shift, type: :model do
-  let(:start_time)  { DateTime.now.change(hour: 9) }
+  let(:nine_am)     { DateTime.now.change(hour: 9) }
+  let(:five_am)     { DateTime.now.change(hour: 5) }
+  let(:two_am)      { DateTime.now.change(hour: 2) }
+  let(:start_time)  { nine_am }
   let(:end_time)    { DateTime.now.change(hour: 17) }
   let(:shift)       { FactoryBot.build(:shift, start_time: start_time, end_time: end_time) }
 
@@ -44,9 +47,41 @@ RSpec.describe Shift, type: :model do
       expect(overtime_shift).to_not be_valid
     end
 
-    it "cannot overlap another shift"
-    it "is within the boundaries of 7am to 3am opening hours"
-    # cannot overlap the 3:00:01am to 6:59:59am slot
+    it "cannot overlap another shift" do
+      FactoryBot.create(
+        :shift,
+        start_time: start_time,
+        end_time: end_time
+      )
+
+      overlapping_shift = FactoryBot.build(
+        :shift,
+        start_time: start_time + 2.hour,
+        end_time: end_time + 2.hour
+      )
+
+      expect(overlapping_shift).to_not be_valid
+    end
+
+    it "requires start time to be within opening hours" do
+      out_of_hours_start = FactoryBot.build(
+        :shift,
+        start_time: five_am,
+        end_time: nine_am
+      )
+
+      expect(out_of_hours_start).to_not be_valid
+    end
+
+    it "requires end time to be within opening hours" do
+      out_of_hours_end = FactoryBot.build(
+        :shift,
+        start_time: two_am,
+        end_time: five_am
+      )
+
+      expect(out_of_hours_end).to_not be_valid
+    end
 
     describe "#duration" do
       it "returns duration in hours between the start and end times" do
