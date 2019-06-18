@@ -48,7 +48,4 @@ RSpec.feature "Shifts", type: :feature do
 
     expect(page).to have_text("Your shift was booked successfully")
   end
-
-  scenario "can delete a shift"
-  scenario "can edit a shift"
 end
