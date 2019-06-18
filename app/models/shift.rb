@@ -1,6 +1,6 @@
 class Shift < ApplicationRecord
-  OPENING_HOURS = Time.parse('7:00')
-  CLOSING_HOURS = Time.parse('3:00')
+  OPENING_HOURS = Time.parse('7:00').strftime("%H%M%S%N")
+  CLOSING_HOURS = Time.parse('3:00').strftime("%H%M%S%N")
 
   belongs_to :user
 
@@ -10,6 +10,7 @@ class Shift < ApplicationRecord
   validate :cannot_overlap_another_shift
   validate :start_time_is_within_working_hours
   validate :end_time_is_within_working_hours
+  validate :cannot_exceed_maximum_working_hours
 
   scope :in_range, -> (range) {
     where(
@@ -22,9 +23,6 @@ class Shift < ApplicationRecord
       range.last
     )
   }
-
-  # def self.available(date)
-  # end
 
   def duration
     (end_time.to_time - start_time.to_time) / 1.hour
@@ -61,7 +59,7 @@ class Shift < ApplicationRecord
     def start_time_is_within_working_hours
       return if start_time.blank?
 
-      if start_time.between?(CLOSING_HOURS, OPENING_HOURS)
+      if start_time.strftime("%H%M%S%N").between?(CLOSING_HOURS, OPENING_HOURS)
         errors.add(:start_time, "start time must be within working hours of 7am - 3am")
       end
     end
@@ -69,8 +67,16 @@ class Shift < ApplicationRecord
     def end_time_is_within_working_hours
       return if end_time.blank?
 
-      if end_time.between?(CLOSING_HOURS, OPENING_HOURS)
+      if end_time.strftime("%H%M%S%N").between?(CLOSING_HOURS, OPENING_HOURS)
         errors.add(:end_time, "end time must be within working hours of 7am - 3am")
+      end
+    end
+
+    def cannot_exceed_maximum_working_hours
+      return if [user, start_time, end_time].any?(&:blank?)
+
+      if (user.weekly_hours(start_time) + duration) > 40
+        errors.add(:end_time, "cannot exceed 40 working hours per week")
       end
     end
 end
