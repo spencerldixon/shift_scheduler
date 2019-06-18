@@ -1,0 +1,14 @@
+<h1 class="display-4 mb-4">My Shift</h1>
+
+<p>
+  <strong>Start time:</strong>
+  <%= @shift.start_time.to_formatted_s(:short) %>
+</p>
+
+<p>
+  <strong>End time:</strong>
+  <%= @shift.end_time.to_formatted_s(:short) %>
+</p>
+
+<%= link_to 'Edit', edit_shift_path(@shift) %> |
+<%= link_to 'Back', shifts_path %>

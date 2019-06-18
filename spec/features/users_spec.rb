@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.feature "Users", type: :feature do
-  let(:user)        { FactoryBot.create(:user) }
+  let(:user) { FactoryBot.create(:user) }
 
   feature "authentication" do
     scenario "can log in" do

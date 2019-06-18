@@ -11,6 +11,7 @@ class Shift < ApplicationRecord
   validate :start_time_is_within_working_hours
   validate :end_time_is_within_working_hours
   validate :cannot_exceed_maximum_working_hours
+  validate :start_time_and_end_time_cannot_be_identical
 
   scope :in_range, -> (range) {
     where(
@@ -60,7 +61,7 @@ class Shift < ApplicationRecord
       return if start_time.blank?
 
       if start_time.strftime("%H%M%S%N").between?(CLOSING_HOURS, OPENING_HOURS)
-        errors.add(:start_time, "start time must be within working hours of 7am - 3am")
+        errors.add(:start_time, "must be within working hours of 7am - 3am")
       end
     end
 
@@ -68,7 +69,7 @@ class Shift < ApplicationRecord
       return if end_time.blank?
 
       if end_time.strftime("%H%M%S%N").between?(CLOSING_HOURS, OPENING_HOURS)
-        errors.add(:end_time, "end time must be within working hours of 7am - 3am")
+        errors.add(:end_time, "must be within working hours of 7am - 3am")
       end
     end
 
@@ -76,7 +77,15 @@ class Shift < ApplicationRecord
       return if [user, start_time, end_time].any?(&:blank?)
 
       if (user.weekly_hours(start_time) + duration) > 40
-        errors.add(:end_time, "cannot exceed 40 working hours per week")
+        errors.add(:end_time, "shift cannot exceed 40 working hours per week")
+      end
+    end
+
+    def start_time_and_end_time_cannot_be_identical
+      return if [start_time, end_time].any?(&:blank?)
+
+      if start_time == end_time
+        errors.add(:end_time, "start time and end time must be different")
       end
     end
 end

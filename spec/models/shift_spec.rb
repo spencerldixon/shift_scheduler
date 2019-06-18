@@ -29,23 +29,16 @@ RSpec.describe Shift, type: :model do
     end
 
     it "requires end time is after start time" do
-      inverted_shift = FactoryBot.build(
-        :shift,
-        start_time: end_time,
-        end_time: start_time
-      )
+      shift.start_time  = end_time
+      shift.end_time    = start_time
 
-      expect(inverted_shift).to_not be_valid
+      expect(shift).to_not be_valid
     end
 
     it "cannot exceed 8 hours in duration" do
-      overtime_shift = FactoryBot.build(
-        :shift,
-        start_time: start_time,
-        end_time: start_time + 10.hours
-      )
+      shift.end_time = start_time + 10.hours
 
-      expect(overtime_shift).to_not be_valid
+      expect(shift).to_not be_valid
     end
 
     it "cannot overlap another shift" do
@@ -75,26 +68,21 @@ RSpec.describe Shift, type: :model do
     end
 
     it "requires end_time to be within opening hours" do
-      out_of_hours_end = FactoryBot.build(
-        :shift,
-        start_time: two_am,
-        end_time: five_am
-      )
+      shift.start_time = two_am
+      shift.end_time   = five_am
 
-      expect(out_of_hours_end).to_not be_valid
+      expect(shift).to_not be_valid
+    end
+
+    it "requires start_time and end_time to be different" do
+      shift.start_time = two_am
+      shift.end_time   = two_am
+
+      expect(shift).to_not be_valid
     end
 
     it "cannot exceed 40 hours in total per week" do
-      user = FactoryBot.create(:user)
-
-      5.times do |n|
-        FactoryBot.create(
-          :shift,
-          user: user,
-          start_time: start_time + n.days,
-          end_time: end_time + n.days
-        )
-      end
+      user = FactoryBot.create(:user, :with_shifts)
 
       fifth_consecutive_shift = FactoryBot.build(
         :shift,
